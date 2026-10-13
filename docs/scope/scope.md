@@ -13,7 +13,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 |---|---------|-------|--------|
 | 1 | Stack & architecture | Foundation | in-progress |
 | 2 | Coding standards & tooling | Foundation | planned |
-| 3 | Data model | Foundation | planned |
+| 3 | Data model | Foundation | in-progress |
 | 4 | Design system & UI foundation | Foundation | planned |
 | 5 | Storefront browse and WhatsApp handoff | Slice 1 | planned |
 | 6 | Owner sign in and listing management | Slice 1 | planned |
@@ -34,10 +34,19 @@ Capture conventions, then install lint, format, and pre commit enforcement from 
 **Done when:** root `AGENTS.md` reflects the real stack, and lint and format run clean.
 - [ ] Capture conventions + tooling choices: `/audit`
 
-### 3. Data model
-The one listing entity, its fields (platform, price, follower count, age, screenshots, status), and the rules that keep two buyers from claiming the same listing.
+### 3. Data model · in-progress
+The one listing entity, its fields (platform, price, follower count, age, screenshots, status), and the rules that keep two buyers from claiming the same listing. Buyers sign up and sign in to see the full account details; the claim names a buyer.
 **Done when:** listings can be stored, listed, marked pending or sold, and never go to two buyers at once.
-- [ ] Design it (spec): `/architect data model`
+- [x] Design it (spec): `/architect data model`
+- [ ] Build it: `/develop data model`
+  - [ ] Schema, migration, and enums for listings, images, clicks, and the user additions (AC-1, AC-6, AC-8, AC-11)
+  - [ ] Listing entities and repositories (AC-1, AC-3, AC-8)
+  - [ ] Reads: listAvailable with cursor pagination, gate behind sign in, listForAdmin (AC-2, AC-7, AC-10)
+  - [ ] Listing writes: create, update, soft delete, restore, purge with file cleanup (AC-1, AC-7)
+  - [ ] Claim rule, buyer sign up and sign in, owner roles, and the rate limits (AC-4, AC-5, AC-6, AC-9, AC-11)
+- [ ] Verify it: `/check verify data model`
+- [ ] Test it: `/test data model`
+Spec [0002](../specs/0002-data-model/index.md) · code in `./`
 
 ### 4. Design system & UI foundation · needs a decision
 Visual language, layout primitives, and base components so the shop looks credible and works on a phone, since most buyers will arrive from a link on mobile.
