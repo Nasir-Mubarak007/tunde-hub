@@ -15,8 +15,8 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 2 | Coding standards & tooling | Foundation | planned |
 | 3 | Data model | Foundation | in-progress |
 | 4 | Design system & UI foundation | Foundation | planned |
-| 5 | Storefront browse and WhatsApp handoff | Slice 1 | planned |
-| 6 | Owner sign in and listing management | Slice 1 | planned |
+| 5 | Storefront browse and WhatsApp handoff | Slice 1 | in-progress |
+| 6 | Owner sign in and listing management | Slice 1 | in-progress |
 | 7 | Sale lifecycle: pending, sold, removal | Slice 2 | planned |
 
 ## Foundations
@@ -38,15 +38,15 @@ Capture conventions, then install lint, format, and pre commit enforcement from 
 The one listing entity, its fields (platform, price, follower count, age, screenshots, status), and the rules that keep two buyers from claiming the same listing. Buyers sign up and sign in to see the full account details; the claim names a buyer.
 **Done when:** listings can be stored, listed, marked pending or sold, and never go to two buyers at once.
 - [x] Design it (spec): `/architect data model`
-- [ ] Build it: `/develop data model`
-  - [ ] Schema, migration, and enums for listings, images, clicks, and the user additions (AC-1, AC-6, AC-8, AC-11)
-  - [ ] Listing entities and repositories (AC-1, AC-3, AC-8)
-  - [ ] Reads: listAvailable with cursor pagination, gate behind sign in, listForAdmin (AC-2, AC-7, AC-10)
-  - [ ] Listing writes: create, update, soft delete, restore, purge with file cleanup (AC-1, AC-7)
-  - [ ] Claim rule, buyer sign up and sign in, owner roles, and the rate limits (AC-4, AC-5, AC-6, AC-9, AC-11)
-- [ ] Verify it: `/check verify data model`
-- [ ] Test it: `/test data model`
-Spec [0002](../specs/0002-data-model/index.md) · code in `./`
+- [x] Build it: `/develop data model` (all milestones landed 2026-10-14; `verify.md` steps written, verify not yet run)
+  - [x] Schema, migration, and enums for listings, images, clicks, and the user additions (AC-1, AC-6, AC-8, AC-11)
+  - [x] Listing entities and repositories (AC-1, AC-3, AC-8)
+  - [x] Reads: listAvailable with cursor pagination, gate behind sign in, listForAdmin (AC-2, AC-7, AC-10)
+  - [x] Listing writes: create, update, soft delete, restore, purge with file cleanup (AC-1, AC-7)
+  - [x] Claim rule, buyer sign up and sign in, owner roles, and the rate limits (AC-4, AC-5, AC-6, AC-9, AC-11)
+- [x] Verify it: `/check verify data model` (ran 2026-10-14 against the Neon dev branch, every AC met with live evidence; see the spec verify.md)
+- [x] Test it: `/test data model` (gate only by project choice: typecheck green, lint 0 errors, behavior proven by `/check verify`; no runner until the tooling feature lands)
+Spec [0002](../specs/0002-data-model/index.md) · code in `./src/features/listings`, `./src/features/auth`, `./drizzle`, `./scripts/seed-owner.ts`
 
 ### 4. Design system & UI foundation · needs a decision
 Visual language, layout primitives, and base components so the shop looks credible and works on a phone, since most buyers will arrive from a link on mobile.
@@ -55,15 +55,23 @@ Visual language, layout primitives, and base components so the shop looks credib
 
 ## Slice 1: Smallest usable whole
 
-### 5. Storefront browse and WhatsApp handoff · needs a decision · Beta
+### 5. Storefront browse and WhatsApp handoff · Beta
 Visitors land on a public page of available accounts, filter by platform, price and followers, sort, open a listing to see screenshots and price, and click through to your WhatsApp chat. This slice is the walking skeleton.
 **Done when:** a visitor can see available listings on a phone and on desktop, filter and sort them, open one listing, and land in your WhatsApp chat from it.
-- [ ] Design it (spec): `/architect storefront browse and WhatsApp handoff`
+- [x] Design it (spec): `/architect storefront browse and WhatsApp handoff`
+- [ ] Build it: `/develop storefront browse and WhatsApp handoff`
+  - [x] Grid plus detail shell reading live (AC-1, AC-5, AC-8, AC-11, AC-12)
+  - [x] Claim plus chat action (AC-6, AC-7, AC-10)
+  - [x] URL filters, sort and Load more (AC-2, AC-3)
+  - [x] Sold states plus accessibility pass (AC-4, AC-9)
+- [ ] Verify it: `/check verify storefront browse and WhatsApp handoff`
+- [ ] Test it: `/test storefront browse and WhatsApp handoff`
+Spec [0003](../specs/0003-storefront-browse-whatsapp-handoff/index.md) · code in `./src/app`, `./src/features/listings`, `./src/features/auth`
 
-### 6. Owner sign in and listing management
+### 6. Owner sign in and listing management · in-progress
 You sign in to a private panel with one login of your own, then add, edit and delete listings with platform, price, follower count and screenshots.
 **Done when:** you can sign in, add a listing with a photo and price, edit any field, delete a listing, and see your listings listed in the panel.
-- [ ] Build it: `/develop owner sign in and listing management` (leads on the data model spec for how a listing is shaped and guarded)
+- [ ] Build it: `/develop owner sign in and listing management` (auth half landed 2026-10-14: `/sign-in` with sign in and create account modes, sign out, owner gate helper; panel plus listing writes still open)
 
 ## Slice 2: Sale lifecycle
 
