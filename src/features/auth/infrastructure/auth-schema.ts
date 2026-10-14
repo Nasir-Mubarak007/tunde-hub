@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["owner", "customer"]);
 
@@ -20,7 +20,7 @@ export const users = pgTable(
     role: userRoleEnum("role").notNull().default("customer"),
     displayName: text("display_name"),
   },
-  (t) => [sql`${t.role} = 'owner' OR ${t.displayName} IS NOT NULL`],
+  (t) => [check("users_role_display_name_check", sql`${t.role} = 'owner' OR ${t.displayName} IS NOT NULL`)],
 );
 
 export const sessions = pgTable("sessions", {

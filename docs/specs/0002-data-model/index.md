@@ -1,7 +1,7 @@
 # 0002. Data model for the account storefront
 
 **Date**: 2026-10-12
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 

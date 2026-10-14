@@ -8,6 +8,13 @@
       "when": 1791891030509,
       "tag": "0000_volatile_mongoose",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791984609022,
+      "tag": "0001_users_role_display_name_check",
+      "breakpoints": true
     }
   ]
 }

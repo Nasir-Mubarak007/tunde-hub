@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD CONSTRAINT "users_role_display_name_check" CHECK ("users"."role" = 'owner' OR "users"."display_name" IS NOT NULL);
