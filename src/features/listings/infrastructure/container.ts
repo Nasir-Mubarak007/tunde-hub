@@ -69,16 +69,18 @@ export async function getListingDetail(
 
 /**
  * Renders every page from the top through the requested cursor.
- * Takes the filters plus the cursor plus the clock, returns the whole visible list.
+ * Takes the filters plus the cursor plus the clock, returns the whole visible
+ * list plus the cursor for the page after it, so Load more keeps working.
  */
 export async function listCardsThroughCursor(
   input: ListAvailableInput,
   requestedCursor: string,
   now: Date,
-): Promise<readonly ListAvailableOutput["items"][number][]> {
+): Promise<{ readonly items: readonly ListAvailableOutput["items"][number][]; readonly nextCursor: string | null }> {
   const items: ListAvailableOutput["items"][number][] = [];
   const withoutCursor = { ...input, cursor: undefined };
   let cursor: string | undefined;
+  let nextCursor: string | null = null;
   for (let page = 0; page < MAX_CURSOR_PAGES; page += 1) {
     const result = await listStorefrontCards({ ...withoutCursor, cursor }, now);
     if (!result.ok) {
@@ -86,11 +88,12 @@ export async function listCardsThroughCursor(
     }
     items.push(...result.value.items);
     if (result.value.nextCursor === null || cursor === requestedCursor) {
+      nextCursor = result.value.nextCursor;
       break;
     }
     cursor = result.value.nextCursor;
   }
-  return items;
+  return { items, nextCursor };
 }
 
 /** Claims one listing for one buyer. Takes the input plus the clock, returns the outcome as a value. */

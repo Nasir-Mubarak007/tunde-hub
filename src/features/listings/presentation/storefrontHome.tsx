@@ -38,7 +38,9 @@ export async function StorefrontHome({
   let nextCursor: string | null = null;
 
   if (filters.cursor.length > 0) {
-    cards = await listCardsThroughCursor(input, filters.cursor, now);
+    const through = await listCardsThroughCursor(input, filters.cursor, now);
+    cards = through.items;
+    nextCursor = through.nextCursor;
   } else {
     const page = await listStorefrontCards(input, now);
     cards = page.ok ? page.value.items : [];
