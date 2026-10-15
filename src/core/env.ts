@@ -14,6 +14,10 @@ const envSchema = z.object({
   OWNER_EMAIL: z.string().email().optional(),
   OWNER_PASSWORD: z.string().min(1).optional(),
   UPLOADTHING_TOKEN: z.string().min(1).optional(),
+  SELLER_WHATSAPP_NUMBER: z
+    .string()
+    .regex(/^\d{7,15}$/, "SELLER_WHATSAPP_NUMBER must be digits with a country code and no plus")
+    .optional(),
   CRON_SECRET: z.string().min(1).optional(),
   HASH_SECRET: z.string().min(32, "HASH_SECRET must be at least 32 chars").optional(),
   NEON_BRANCH: z.string().optional(),
