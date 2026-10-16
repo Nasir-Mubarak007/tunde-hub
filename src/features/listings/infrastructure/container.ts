@@ -17,6 +17,22 @@ import {
 import type { ListingLifecycleError, ListingLifecycleInput } from "../application/listingLifecycle";
 import { purgeListingForOwner } from "../application/purgeListing";
 import type { PurgeListingError, PurgeListingInput, PurgeListingSuccess } from "../application/purgeListing";
+import {
+  bulkConfirmSoldForOwner,
+  bulkReleaseForOwner,
+  confirmSoldForOwner,
+  markSoldDirectForOwner,
+  releaseListingForOwner,
+  reopenSoldForOwner,
+} from "../application/saleLifecycle";
+import type {
+  BulkSaleError,
+  BulkSaleInput,
+  BulkSaleOutput,
+  SaleLifecycleDeps,
+  SaleMoveError,
+  SaleMoveInput,
+} from "../application/saleLifecycle";
 import { listListingsForAdmin } from "../application/listForAdmin";
 import type { ListForAdminError, ListForAdminInput, ListForAdminOutput } from "../application/listForAdmin";
 import { getAdminOverview } from "../application/adminOverview";
@@ -32,7 +48,9 @@ import type { ViewerRole } from "../domain/visibility";
 
 import { claimStore, rateLimitStore } from "./drizzle/claimStore";
 import { listingImageStore } from "./drizzle/listingImageStore";
+import { listingSaleStore } from "./drizzle/saleStore";
 import { adminListingQuery, listingQuery, listingRepository } from "./drizzle/listingRepository";
+import { appTransitionLog } from "./appTransitionLog";
 import { fileStore } from "./uploadthingFileStore";
 import { canManageListings } from "../domain/visibility";
 import type { ListingImage } from "../domain/listingImage";
@@ -54,6 +72,11 @@ function claimDeps(): ClaimListingDeps {
 /** Detail deps. Takes the ports the use case calls, returns them wired. */
 function findDeps(): FindBySlugDeps {
   return { listings: listingRepository, images: listingImageStore };
+}
+
+/** Sale deps. Takes the read port, the conditional write port and the log sink, returns them wired. */
+function saleDeps(): SaleLifecycleDeps {
+  return { listings: listingRepository, sales: listingSaleStore, transitions: appTransitionLog };
 }
 
 /** Lists the cards for the grid. Takes input plus the clock, returns the page or the reason. */
@@ -196,6 +219,54 @@ export async function getListingForOwnerEdit(
   }
   const images = await listingImageStore.listForListing(listing.id);
   return { ok: true, value: { listing, images } };
+}
+
+/** Confirms a pending listing as sold. Takes the input plus the clock, returns the moved row or the reason. */
+export async function confirmSoldForOwnerAction(
+  input: SaleMoveInput,
+  now: Date,
+): Promise<Result<Listing, SaleMoveError>> {
+  return confirmSoldForOwner(saleDeps(), input, now);
+}
+
+/** Sells an available listing straight to sold. Takes the input plus the clock, returns the moved row or the reason. */
+export async function markSoldDirectForOwnerAction(
+  input: SaleMoveInput,
+  now: Date,
+): Promise<Result<Listing, SaleMoveError>> {
+  return markSoldDirectForOwner(saleDeps(), input, now);
+}
+
+/** Releases a pending listing back to available. Takes the input plus the clock, returns the moved row or the reason. */
+export async function releaseListingForOwnerAction(
+  input: SaleMoveInput,
+  now: Date,
+): Promise<Result<Listing, SaleMoveError>> {
+  return releaseListingForOwner(saleDeps(), input, now);
+}
+
+/** Reopens a sold listing back to available. Takes the input plus the clock, returns the moved row or the reason. */
+export async function reopenSoldForOwnerAction(
+  input: SaleMoveInput,
+  now: Date,
+): Promise<Result<Listing, SaleMoveError>> {
+  return reopenSoldForOwner(saleDeps(), input, now);
+}
+
+/** Confirms many pending listings as sold. Takes the input plus the clock, returns a result per row or the reason. */
+export async function bulkConfirmSoldForOwnerAction(
+  input: BulkSaleInput,
+  now: Date,
+): Promise<Result<BulkSaleOutput, BulkSaleError>> {
+  return bulkConfirmSoldForOwner(saleDeps(), input, now);
+}
+
+/** Releases many pending listings back to available. Takes the input plus the clock, returns a result per row or the reason. */
+export async function bulkReleaseForOwnerAction(
+  input: BulkSaleInput,
+  now: Date,
+): Promise<Result<BulkSaleOutput, BulkSaleError>> {
+  return bulkReleaseForOwner(saleDeps(), input, now);
 }
 
 

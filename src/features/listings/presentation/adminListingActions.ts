@@ -15,14 +15,24 @@ import {
 import type { FieldIssue } from "../application/listingWriteInput";
 import {
   createListingForOwnerAction,
+  bulkConfirmSoldForOwnerAction,
+  bulkReleaseForOwnerAction,
+  confirmSoldForOwnerAction,
   getAdminOverviewAction,
   getListingForOwnerEdit,
   listListingsForAdminAction,
+  markSoldDirectForOwnerAction,
   purgeListingForOwnerAction,
+  releaseListingForOwnerAction,
+  reopenSoldForOwnerAction,
   restoreListingForOwnerAction,
   softDeleteListingForOwnerAction,
   updateListingForOwnerAction,
 } from "../infrastructure/container";
+import type { BulkSaleError, BulkSaleInput, BulkSaleOutput, SaleMoveError, SaleMoveInput } from "../application/saleLifecycle";
+import { assertNever } from "../domain/result";
+import type { Result } from "../domain/result";
+import type { Listing } from "../domain/listing";
 import type { AdminStatusFilter } from "../domain/repositories";
 
 
@@ -32,6 +42,50 @@ export interface AdminFormResult {
   readonly issues?: readonly FieldIssue[];
   readonly message?: string;
   readonly slug?: string;
+}
+
+/** What one owner move returns. The row prints the message under the buttons. */
+export interface SaleActionResult {
+  readonly ok: boolean;
+  readonly message: string;
+}
+
+/** What one bulk press returns. The bar prints the counts under the buttons. */
+export interface BulkSaleActionResult {
+  readonly ok: boolean;
+  readonly message: string;
+  readonly moved: number;
+  readonly skipped: number;
+}
+
+/** Words for a refused owner move. Takes the reason, returns what the panel shows. */
+function saleMoveMessage(error: SaleMoveError): string {
+  switch (error) {
+    case "not-owner":
+      return "Only the owner can do that.";
+    case "listing-not-found":
+      return "That listing is gone.";
+    case "wrong-state":
+      return "That listing is not in a state for that move.";
+    case "just-changed":
+      return "That listing just changed. The panel now shows where it actually is.";
+    default:
+      return assertNever(error);
+  }
+}
+
+/** Words for a refused bulk press. Takes the reason, returns what the panel shows. */
+function bulkSaleMessage(error: BulkSaleError): string {
+  switch (error) {
+    case "not-owner":
+      return "Only the owner can do that.";
+    case "empty-selection":
+      return "Pick at least one listing first.";
+    case "too-many-selected":
+      return "That is more than 50 listings. Do them in smaller batches.";
+    default:
+      return assertNever(error);
+  }
 }
 
 /** Turns a domain issue list into field issues. Takes the issues, returns printable rows. */
@@ -180,6 +234,104 @@ export async function purgeListingFormAction(formData: FormData): Promise<void> 
   }
   await purgeListingForOwnerAction({ actorRole: viewer.role, listingId });
   revalidatePath("/admin");
+}
+
+/**
+ * Refreshes every page a lifecycle move changes. Takes the slug when the move
+ * named one. A move never leaves the shop grid or the listing page showing a
+ * state the row has already left.
+ */
+function revalidateSalePages(slug: string | null): void {
+  revalidatePath("/admin");
+  revalidatePath("/");
+  if (slug === null) {
+    revalidatePath("/listings/[slug]", "page");
+    return;
+  }
+  revalidatePath(`/listings/${slug}`);
+}
+
+/** One owner move as the container exposes it. Takes the input plus the clock, returns the row or the reason. */
+type SaleRowMove = (input: SaleMoveInput, now: Date) => Promise<Result<Listing, SaleMoveError>>;
+
+/** One bulk move as the container exposes it. Takes the input plus the clock, returns the counts or the reason. */
+type BulkMove = (input: BulkSaleInput, now: Date) => Promise<Result<BulkSaleOutput, BulkSaleError>>;
+
+/** One owner move wired to a row button. Takes the form data and the move, returns the words to show. */
+async function runSaleRowAction(formData: FormData, move: SaleRowMove): Promise<SaleActionResult> {
+  const viewer = await requireOwnerViewer("/admin");
+  const listingId = listingIdFrom(formData);
+  if (listingId === null) {
+    return { ok: false, message: "That row could not be read." };
+  }
+  const result = await move({ actorRole: viewer.role, actorId: viewer.userId, listingId }, new Date());
+  revalidateSalePages(result.ok ? result.value.slug : null);
+  if (!result.ok) {
+    return { ok: false, message: saleMoveMessage(result.error) };
+  }
+  return { ok: true, message: "Done." };
+}
+
+/** Confirms a pending listing as sold from a row button. Takes the form data, returns the words to show. */
+export async function confirmSoldFormAction(formData: FormData): Promise<SaleActionResult> {
+  return runSaleRowAction(formData, confirmSoldForOwnerAction);
+}
+
+/** Releases a pending listing back to available from a row button. Takes the form data, returns the words to show. */
+export async function releaseListingFormAction(formData: FormData): Promise<SaleActionResult> {
+  return runSaleRowAction(formData, releaseListingForOwnerAction);
+}
+
+/** Sells an available listing straight to sold from a row button. Takes the form data, returns the words to show. */
+export async function markSoldDirectFormAction(formData: FormData): Promise<SaleActionResult> {
+  return runSaleRowAction(formData, markSoldDirectForOwnerAction);
+}
+
+/** Reopens a sold listing back to available from a row button. Takes the form data, returns the words to show. */
+export async function reopenSoldFormAction(formData: FormData): Promise<SaleActionResult> {
+  return runSaleRowAction(formData, reopenSoldForOwnerAction);
+}
+
+/** Reads the ticked ids from a bulk form, keeping the order they arrived in. Takes the form data, returns the ids. */
+function listingIdsFrom(formData: FormData): readonly number[] {
+  return formData
+    .getAll("listingId")
+    .map((raw) => (typeof raw === "string" ? Number.parseInt(raw, 10) : Number.NaN))
+    .filter((id) => Number.isInteger(id));
+}
+
+/**
+ * One bulk press wired to the panel bar. Takes the form data and the move,
+ * returns the counts plus the words to show. The panel grid and every listing
+ * page are refreshed afterwards because a bulk press never names one slug.
+ */
+async function runBulkSaleAction(formData: FormData, move: BulkMove): Promise<BulkSaleActionResult> {
+  const viewer = await requireOwnerViewer("/admin");
+  const listingIds = listingIdsFrom(formData);
+  if (listingIds.length === 0) {
+    return { ok: false, message: bulkSaleMessage("empty-selection"), moved: 0, skipped: 0 };
+  }
+  const result = await move({ actorRole: viewer.role, actorId: viewer.userId, listingIds }, new Date());
+  revalidateSalePages(null);
+  if (!result.ok) {
+    return { ok: false, message: bulkSaleMessage(result.error), moved: 0, skipped: listingIds.length };
+  }
+  const { moved, skipped } = result.value;
+  const message =
+    skipped === 0
+      ? `Moved ${moved} ${moved === 1 ? "listing" : "listings"}.`
+      : `Moved ${moved}. Left ${skipped}, already moved on by someone else.`;
+  return { ok: true, message, moved, skipped };
+}
+
+/** Confirms every ticked pending listing as sold. Takes the form data, returns the counts plus the words to show. */
+export async function bulkConfirmSoldFormAction(formData: FormData): Promise<BulkSaleActionResult> {
+  return runBulkSaleAction(formData, bulkConfirmSoldForOwnerAction);
+}
+
+/** Releases every ticked pending listing back to available. Takes the form data, returns the counts plus the words to show. */
+export async function bulkReleaseFormAction(formData: FormData): Promise<BulkSaleActionResult> {
+  return runBulkSaleAction(formData, bulkReleaseForOwnerAction);
 }
 
 /** Reexports the admin list read for the panel page. Kept here so the page imports one module. */
