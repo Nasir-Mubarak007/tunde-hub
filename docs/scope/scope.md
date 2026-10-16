@@ -84,13 +84,13 @@ Code in `./src/app/admin`, `./src/features/listings/presentation`, `./src/featur
 A buyer clicking through puts that account into pending and hides it from the public page. You confirm the sale or release it back to available, and a sold listing shows a sold state for a short while before it drops off the site on its own.
 **Done when:** a click hides that listing from the public page, you can mark it sold or release it back, a sold listing shows as sold for a set window and then disappears from the site by itself, and two clicks never put two buyers on one listing.
 - [x] Design it (spec): `/architect sale lifecycle`
-- [ ] Build it: `/develop sale lifecycle`
-  - [ ] Owner moves plus logs: transitions, conditional writes, four single actions (AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, AC-10)
-  - [ ] Sold window plus holder view: 7 day filter on reads, hold banner with chat continuation (AC-1, AC-5, AC-7)
-  - [ ] Panel buttons, bulk plus empty states (AC-8)
+- [x] Build it: `/develop sale lifecycle` (all milestones landed 2026-10-16: four conditional owner moves over the existing row plus transition logs, 7 day sold window on public reads plus the listing not found body, panel row buttons with bulk confirm and bulk release, per bucket empty states)
+  - [x] Owner moves plus logs: transitions, conditional writes, four single actions (AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, AC-10)
+  - [x] Sold window plus holder view: 7 day filter on reads, hold banner with chat continuation (AC-1, AC-5, AC-7)
+  - [x] Panel buttons, bulk plus empty states (AC-8)
 - [ ] Verify it: `/check verify sale lifecycle`
 - [ ] Test it: `/test sale lifecycle`
-Spec [0005](../specs/0005-sale-lifecycle/index.md)
+Spec [0005](../specs/0005-sale-lifecycle/index.md) · code in `./src/features/listings`, `./src/app/listings/[slug]`, `./src/app/admin`
 
 ## Deferred
 Out of scope for the current build pass, kept so the plan stays honest.

@@ -1,7 +1,7 @@
 # 0005. Sale lifecycle for listings
 
 **Date**: 2026-10-16
-**Status**: Proposed
+**Status**: In Progress
 
 ## Summary
 
@@ -111,11 +111,11 @@ Owner role runs all six writes. Customers and anonymous callers are refused befo
 
 Ordered by the Skateboard approach: thinnest usable whole first (single actions plus read filter), then grown with bulk and polish. No migration in any task.
 
-1. Add the domain transitions plus the conditional owner writes (confirm, release, direct sold, reopen) with wrong state refusal, satisfies **AC-2**, **AC-3**, **AC-4**, **AC-6**, **AC-10**
-2. Bind the four single row server actions to the panel with owner checks and transition logs, satisfies **AC-2**, **AC-3**, **AC-4**, **AC-7**, **AC-9**
-3. Lock public reads to the 7 day sold window and add the holder own hold banner with chat continuation, satisfies **AC-1**, **AC-5**, **AC-7**
-4. Add row buttons (Sold and Release on pending, Mark sold on available, Reopen on sold) plus empty states plus keyboard and focus pass, satisfies **AC-8**
-5. Add bulk confirm and bulk release with per id best effort results, cap 50, satisfies **AC-8**
+1. [x] Add the domain transitions plus the conditional owner writes (confirm, release, direct sold, reopen) with wrong state refusal, satisfies **AC-2**, **AC-3**, **AC-4**, **AC-6**, **AC-10**
+2. [x] Bind the four single row server actions to the panel with owner checks and transition logs, satisfies **AC-2**, **AC-3**, **AC-4**, **AC-7**, **AC-9**
+3. [x] Lock public reads to the 7 day sold window and add the holder own hold banner with chat continuation, satisfies **AC-1**, **AC-5**, **AC-7**
+4. [x] Add row buttons (Sold and Release on pending, Mark sold on available, Reopen on sold) plus empty states plus keyboard and focus pass, satisfies **AC-8**
+5. [x] Add bulk confirm and bulk release with per id best effort results, cap 50, satisfies **AC-8**
 
 ## Consequences
 
