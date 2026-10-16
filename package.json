@@ -15,12 +15,15 @@
   "dependencies": {
     "@neon/config": "^1.8.6",
     "@neon/env": "^1.5.3",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@uploadthing/react": "^7.3.3",
     "better-auth": "^1.7.7",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.0",
     "postgres": "^3.4.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "tailwindcss": "^4.3.3",
     "uploadthing": "^7.7.4",
     "zod": "^4.6.6"
   },

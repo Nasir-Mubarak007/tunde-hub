@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * This page decides per request (signed in visitors bounce to the return
+ * path), so it is allowed to block instead of prerendering instantly.
+ */
+export const instant = false;
+
 /** Reads the starting mode. Takes the raw value, returns signup only for an exact match. */
 function initialModeFrom(raw: string | string[] | undefined): SignInMode {
   const value = Array.isArray(raw) ? raw[0] : raw;

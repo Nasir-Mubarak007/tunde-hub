@@ -1,9 +1,11 @@
 /**
- * The shop header: brand on the left, sign in state on the right.
+ * The shop header: brand on the left, sign in state plus theme on the right.
  */
 import Link from "next/link";
 import { SignOutButton } from "@/features/auth/presentation/signOutButton";
 import type { SessionViewer } from "@/features/auth/infrastructure/sessionViewer";
+import { Button } from "@/shared/ui/button";
+import { ThemeToggle } from "@/shared/ui/themeToggle";
 
 /** Renders the header. Takes the viewer, returns the header element. */
 export function StorefrontHeader({ viewer }: { readonly viewer: SessionViewer | null }) {
@@ -17,13 +19,11 @@ export function StorefrontHeader({ viewer }: { readonly viewer: SessionViewer | 
           <span className="shop-brand__name">TundeHub</span>
         </Link>
         <nav className="shop-header__nav" aria-label="Account">
+          <ThemeToggle />
           {viewer === null ? (
-            <Link
-              href="/sign-in"
-              className="button button--quiet button--small"
-            >
+            <Button variant="quiet" size="small" href="/sign-in">
               Sign in
-            </Link>
+            </Button>
           ) : (
             <>
               <span className="shop-header__who">{viewer.displayName ?? viewer.email}</span>

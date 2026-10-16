@@ -3,6 +3,7 @@
  * Cards are public and light: cover, platform, followers, age and price,
  * plus a sold badge while the sold window is still open.
  */
+import Image from "next/image";
 import Link from "next/link";
 import type { ListingCardDto } from "../../application/listingDto";
 import { PLATFORM_LABELS } from "../storefrontQuery";
@@ -26,14 +27,12 @@ export function ListingCard({ card }: { readonly card: ListingCardDto }) {
               {label.slice(0, 2)}
             </span>
           ) : (
-            <img
+            <Image
               className="card__image"
               src={card.coverImageUrl}
               alt={`${card.title} on ${label}`}
-              width={768}
-              height={768}
-              loading="lazy"
-              decoding="async"
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             />
           )}
           {sold ? <span className="badge badge--sold">Sold</span> : null}

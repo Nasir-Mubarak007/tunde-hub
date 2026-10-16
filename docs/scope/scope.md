@@ -14,7 +14,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 1 | Stack & architecture | Foundation | in-progress |
 | 2 | Coding standards & tooling | Foundation | planned |
 | 3 | Data model | Foundation | in-progress |
-| 4 | Design system & UI foundation | Foundation | planned |
+| 4 | Design system & UI foundation | Foundation | in-progress |
 | 5 | Storefront browse and WhatsApp handoff | Slice 1 | in-progress |
 | 6 | Owner sign in and listing management | Slice 1 | in-progress |
 | 7 | Sale lifecycle: pending, sold, removal | Slice 2 | planned |
@@ -48,10 +48,14 @@ The one listing entity, its fields (platform, price, follower count, age, screen
 - [x] Test it: `/test data model` (gate only by project choice: typecheck green, lint 0 errors, behavior proven by `/check verify`; no runner until the tooling feature lands)
 Spec [0002](../specs/0002-data-model/index.md) · code in `./src/features/listings`, `./src/features/auth`, `./drizzle`, `./scripts/seed-owner.ts`
 
-### 4. Design system & UI foundation · needs a decision
+### 4. Design system & UI foundation · in-progress
 Visual language, layout primitives, and base components so the shop looks credible and works on a phone, since most buyers will arrive from a link on mobile.
 **Done when:** `design.md` covers type, color, spacing and components, and base components handle focus and keyboard.
-- [ ] Design it (spec): `/architect design system & UI foundation`
+- [x] Design it (spec): `/architect design system & UI foundation`
+- [ ] Build it: `/develop design system & UI foundation` (steps derive from the standard at build time, no milestone rollup here by rule)
+- [ ] Verify it: `/check verify design system & UI foundation`
+- [ ] Test it: `/test design system & UI foundation`
+Spec [0004](../specs/0004-design-system-ui-foundation/index.md)
 
 ## Slice 1: Smallest usable whole
 

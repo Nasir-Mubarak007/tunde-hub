@@ -61,9 +61,5 @@ export async function claimListingAction(formData: FormData): Promise<void> {
   }
 
   const chatUrl = buildWhatsAppChatUrl(sellerWhatsAppNumber(), result.value.message);
-  try {
-    redirect(chatUrl);
-  } catch {
-    redirect(detailHref(result.value.slug, "claimed"));
-  }
+  redirect(chatUrl);
 }
