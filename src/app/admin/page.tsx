@@ -78,7 +78,7 @@ export default async function AdminPage({
         </div>
         <div className="panel">
           <AdminOverview counts={overview.value} active={status} />
-          <AdminList items={page.value.items} />
+          <AdminList items={page.value.items} status={status} />
           {page.value.nextCursor === null ? null : (
             <p className="paging">
               <Link

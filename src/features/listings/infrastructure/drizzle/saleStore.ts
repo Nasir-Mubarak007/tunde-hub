@@ -16,7 +16,9 @@ import { listings } from "./schema";
 import { toListing } from "./listingMapper";
 
 /** The database clock. Every stamp a transition writes comes from here, never from a caller. */
-const databaseNow = sql`now()`;
+function databaseNow(): SQL {
+  return sql`now()`;
+}
 
 /** The columns one owner move may write. Keeps each move honest about its own scope. */
 interface SaleWrite {
@@ -39,7 +41,7 @@ async function moveRow(
 ): Promise<Listing | null> {
   const rows = await db
     .update(listings)
-    .set({ ...write, updatedAt: databaseNow })
+    .set({ ...write, updatedAt: databaseNow() })
     .where(and(eq(listings.id, listingId), eq(listings.status, expected), isNull(listings.deletedAt)))
     .returning();
   const row = rows[0];
@@ -48,12 +50,12 @@ async function moveRow(
 
 /** Confirms a pending listing as sold, keeping the holder. Takes the id, returns the row or null. */
 export async function confirmSold(listingId: number): Promise<Listing | null> {
-  return moveRow(listingId, "pending", { status: "sold", soldAt: databaseNow });
+  return moveRow(listingId, "pending", { status: "sold", soldAt: databaseNow() });
 }
 
 /** Sells an available listing straight to sold, naming no holder. Takes the id, returns the row or null. */
 export async function markSoldDirect(listingId: number): Promise<Listing | null> {
-  return moveRow(listingId, "available", { status: "sold", soldAt: databaseNow });
+  return moveRow(listingId, "available", { status: "sold", soldAt: databaseNow() });
 }
 
 /** Releases a pending listing back to available, clearing the claim columns. Takes the id, returns the row or null. */

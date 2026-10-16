@@ -6,6 +6,7 @@
  */
 import { formatAccountAge, formatListingPrice } from "../domain/listing";
 import type { Listing } from "../domain/listing";
+import type { ListingStatus } from "../domain/listingStatus";
 import { platformLabel } from "../domain/platform";
 import type { AdminListingRow, ClaimHolder } from "../domain/repositories";
 
@@ -18,7 +19,7 @@ export interface AdminListingDto {
   readonly priceDisplay: string;
   readonly followerCount: number;
   readonly ageDisplay: string;
-  readonly status: string;
+  readonly status: ListingStatus;
   readonly isDeleted: boolean;
   readonly imageCount: number;
   readonly createdAt: Date;

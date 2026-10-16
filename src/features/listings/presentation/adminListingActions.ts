@@ -257,13 +257,9 @@ type SaleRowMove = (input: SaleMoveInput, now: Date) => Promise<Result<Listing, 
 /** One bulk move as the container exposes it. Takes the input plus the clock, returns the counts or the reason. */
 type BulkMove = (input: BulkSaleInput, now: Date) => Promise<Result<BulkSaleOutput, BulkSaleError>>;
 
-/** One owner move wired to a row button. Takes the form data and the move, returns the words to show. */
-async function runSaleRowAction(formData: FormData, move: SaleRowMove): Promise<SaleActionResult> {
+/** One owner move wired to a row button. Takes the listing id and the move, returns the words to show. */
+async function runSaleRowAction(listingId: number, move: SaleRowMove): Promise<SaleActionResult> {
   const viewer = await requireOwnerViewer("/admin");
-  const listingId = listingIdFrom(formData);
-  if (listingId === null) {
-    return { ok: false, message: "That row could not be read." };
-  }
   const result = await move({ actorRole: viewer.role, actorId: viewer.userId, listingId }, new Date());
   revalidateSalePages(result.ok ? result.value.slug : null);
   if (!result.ok) {
@@ -272,42 +268,33 @@ async function runSaleRowAction(formData: FormData, move: SaleRowMove): Promise<
   return { ok: true, message: "Done." };
 }
 
-/** Confirms a pending listing as sold from a row button. Takes the form data, returns the words to show. */
-export async function confirmSoldFormAction(formData: FormData): Promise<SaleActionResult> {
-  return runSaleRowAction(formData, confirmSoldForOwnerAction);
+/** Confirms a pending listing as sold from a row button. Takes the listing id, returns the words to show. */
+export async function confirmSoldFormAction(listingId: number): Promise<SaleActionResult> {
+  return runSaleRowAction(listingId, confirmSoldForOwnerAction);
 }
 
-/** Releases a pending listing back to available from a row button. Takes the form data, returns the words to show. */
-export async function releaseListingFormAction(formData: FormData): Promise<SaleActionResult> {
-  return runSaleRowAction(formData, releaseListingForOwnerAction);
+/** Releases a pending listing back to available from a row button. Takes the listing id, returns the words to show. */
+export async function releaseListingFormAction(listingId: number): Promise<SaleActionResult> {
+  return runSaleRowAction(listingId, releaseListingForOwnerAction);
 }
 
-/** Sells an available listing straight to sold from a row button. Takes the form data, returns the words to show. */
-export async function markSoldDirectFormAction(formData: FormData): Promise<SaleActionResult> {
-  return runSaleRowAction(formData, markSoldDirectForOwnerAction);
+/** Sells an available listing straight to sold from a row button. Takes the listing id, returns the words to show. */
+export async function markSoldDirectFormAction(listingId: number): Promise<SaleActionResult> {
+  return runSaleRowAction(listingId, markSoldDirectForOwnerAction);
 }
 
-/** Reopens a sold listing back to available from a row button. Takes the form data, returns the words to show. */
-export async function reopenSoldFormAction(formData: FormData): Promise<SaleActionResult> {
-  return runSaleRowAction(formData, reopenSoldForOwnerAction);
-}
-
-/** Reads the ticked ids from a bulk form, keeping the order they arrived in. Takes the form data, returns the ids. */
-function listingIdsFrom(formData: FormData): readonly number[] {
-  return formData
-    .getAll("listingId")
-    .map((raw) => (typeof raw === "string" ? Number.parseInt(raw, 10) : Number.NaN))
-    .filter((id) => Number.isInteger(id));
+/** Reopens a sold listing back to available from a row button. Takes the listing id, returns the words to show. */
+export async function reopenSoldFormAction(listingId: number): Promise<SaleActionResult> {
+  return runSaleRowAction(listingId, reopenSoldForOwnerAction);
 }
 
 /**
- * One bulk press wired to the panel bar. Takes the form data and the move,
+ * One bulk press wired to the panel bar. Takes the ticked ids and the move,
  * returns the counts plus the words to show. The panel grid and every listing
  * page are refreshed afterwards because a bulk press never names one slug.
  */
-async function runBulkSaleAction(formData: FormData, move: BulkMove): Promise<BulkSaleActionResult> {
+async function runBulkSaleAction(listingIds: readonly number[], move: BulkMove): Promise<BulkSaleActionResult> {
   const viewer = await requireOwnerViewer("/admin");
-  const listingIds = listingIdsFrom(formData);
   if (listingIds.length === 0) {
     return { ok: false, message: bulkSaleMessage("empty-selection"), moved: 0, skipped: 0 };
   }
@@ -324,14 +311,14 @@ async function runBulkSaleAction(formData: FormData, move: BulkMove): Promise<Bu
   return { ok: true, message, moved, skipped };
 }
 
-/** Confirms every ticked pending listing as sold. Takes the form data, returns the counts plus the words to show. */
-export async function bulkConfirmSoldFormAction(formData: FormData): Promise<BulkSaleActionResult> {
-  return runBulkSaleAction(formData, bulkConfirmSoldForOwnerAction);
+/** Confirms every ticked pending listing as sold. Takes the ticked ids, returns the counts plus the words to show. */
+export async function bulkConfirmSoldFormAction(listingIds: readonly number[]): Promise<BulkSaleActionResult> {
+  return runBulkSaleAction(listingIds, bulkConfirmSoldForOwnerAction);
 }
 
-/** Releases every ticked pending listing back to available. Takes the form data, returns the counts plus the words to show. */
-export async function bulkReleaseFormAction(formData: FormData): Promise<BulkSaleActionResult> {
-  return runBulkSaleAction(formData, bulkReleaseForOwnerAction);
+/** Releases every ticked pending listing back to available. Takes the ticked ids, returns the counts plus the words to show. */
+export async function bulkReleaseFormAction(listingIds: readonly number[]): Promise<BulkSaleActionResult> {
+  return runBulkSaleAction(listingIds, bulkReleaseForOwnerAction);
 }
 
 /** Reexports the admin list read for the panel page. Kept here so the page imports one module. */

@@ -15,7 +15,7 @@ import type {
   ListingQuery,
   SortDirection,
 } from "../domain/repositories";
-import { SOLD_WINDOW_DAYS } from "../domain/visibility";
+import { soldWindowCutoff } from "../domain/visibility";
 import type { Listing } from "../domain/listing";
 import { toCardDto } from "./listingDto";
 import type { ListingCardDto } from "./listingDto";
@@ -53,11 +53,6 @@ export type ListAvailableError =
 /** Deps. Takes the query port only. */
 export interface ListAvailableDeps {
   readonly listings: ListingQuery;
-}
-
-/** Whole days as milliseconds. Takes days, returns milliseconds. */
-function daysToMs(days: number): number {
-  return days * 24 * 60 * 60 * 1000;
 }
 
 /** Reads the sort key for cursor building. Takes the listing plus the sort, returns the key. */
@@ -167,7 +162,7 @@ export async function listAvailable(
     direction,
     cursor,
     limit: CARD_PAGE_SIZE + 1,
-    soldCutoff: new Date(now.getTime() - daysToMs(SOLD_WINDOW_DAYS)),
+    soldCutoff: soldWindowCutoff(now),
   });
 
   const page = rows.slice(0, CARD_PAGE_SIZE);

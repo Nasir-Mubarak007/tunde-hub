@@ -7,7 +7,11 @@
 import { assertNever } from "./result";
 import type { Listing } from "./listing";
 
-/** Days a sold listing stays visible. Placeholder for tests. Feature 7 owns the real value. */
+/**
+ * Days a sold listing stays visible on the public site. This is the owned
+ * value, not a placeholder: both the card query and the detail gate read it,
+ * so cards and detail always agree on when a sale drops off.
+ */
 export const SOLD_WINDOW_DAYS = 7;
 
 /** Who is looking. The owner sees every known slug, others see a subset. */
@@ -24,6 +28,15 @@ export type VisibleListing = Pick<Listing, "status" | "soldAt" | "deletedAt">;
 /** Whole days as milliseconds. Takes days, returns milliseconds. */
 function daysToMs(days: number): number {
   return days * 24 * 60 * 60 * 1000;
+}
+
+/**
+ * The oldest sold stamp that still shows. Takes the clock plus an optional
+ * window in days, returns the cutoff. The edge is inclusive, so a sale is
+ * visible for exactly the window and drops the moment it passes.
+ */
+export function soldWindowCutoff(now: Date, soldWindowDays: number = SOLD_WINDOW_DAYS): Date {
+  return new Date(now.getTime() - daysToMs(soldWindowDays));
 }
 
 /** Tells whether a card shows publicly. Takes the listing plus the clock, returns the answer. */
