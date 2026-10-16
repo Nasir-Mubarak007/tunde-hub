@@ -19,11 +19,14 @@ import { purgeListingForOwner } from "../application/purgeListing";
 import type { PurgeListingError, PurgeListingInput, PurgeListingSuccess } from "../application/purgeListing";
 import { listListingsForAdmin } from "../application/listForAdmin";
 import type { ListForAdminError, ListForAdminInput, ListForAdminOutput } from "../application/listForAdmin";
+import { getAdminOverview } from "../application/adminOverview";
+import type { AdminOverviewError } from "../application/adminOverview";
 import { findListingBySlug } from "../application/findBySlug";
 import type { FindBySlugDeps, FindBySlugInput, ListingDetailResult } from "../application/findBySlug";
 import { listAvailable } from "../application/listAvailable";
 import type { ListAvailableInput, ListAvailableOutput } from "../application/listAvailable";
 import type { Result } from "@/core/result";
+import type { AdminCounts } from "../domain/repositories";
 import type { Listing } from "../domain/listing";
 import type { ViewerRole } from "../domain/visibility";
 
@@ -31,6 +34,8 @@ import { claimStore, rateLimitStore } from "./drizzle/claimStore";
 import { listingImageStore } from "./drizzle/listingImageStore";
 import { adminListingQuery, listingQuery, listingRepository } from "./drizzle/listingRepository";
 import { fileStore } from "./uploadthingFileStore";
+import { canManageListings } from "../domain/visibility";
+import type { ListingImage } from "../domain/listingImage";
 
 /** How many cursor pages one render may walk before it stops. Guards a repeated cursor. */
 const MAX_CURSOR_PAGES = 20;
@@ -162,6 +167,35 @@ export async function listListingsForAdminAction(
   input: ListForAdminInput & { readonly actorRole: ViewerRole },
 ): Promise<Result<ListForAdminOutput, ListForAdminError>> {
   return listListingsForAdmin({ listings: adminListingQuery }, input);
+}
+
+/** Reads the overview counts for the panel. Takes the actor role, returns the counts or the reason. */
+export async function getAdminOverviewAction(
+  actorRole: ViewerRole,
+): Promise<Result<AdminCounts, AdminOverviewError>> {
+  return getAdminOverview({ listings: adminListingQuery }, { actorRole });
+}
+
+/** One listing plus its screenshots for the edit form. Plain values the panel can print. */
+export interface ListingEditPayload {
+  readonly listing: Listing;
+  readonly images: readonly ListingImage[];
+}
+
+/** Reads one listing for the edit form. Takes the id plus the actor role, returns the row plus images or the reason. */
+export async function getListingForOwnerEdit(
+  listingId: number,
+  actorRole: ViewerRole,
+): Promise<Result<ListingEditPayload, "not-owner" | "listing-not-found">> {
+  if (!canManageListings(actorRole)) {
+    return { ok: false, error: "not-owner" };
+  }
+  const listing = await listingRepository.findById(listingId);
+  if (listing === null) {
+    return { ok: false, error: "listing-not-found" };
+  }
+  const images = await listingImageStore.listForListing(listing.id);
+  return { ok: true, value: { listing, images } };
 }
 
 

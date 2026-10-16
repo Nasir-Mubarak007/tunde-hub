@@ -4,7 +4,7 @@
  * never as in memory filtering. Storage failures throw; domain
  * refusals stay values.
  */
-import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import type { AnyColumn } from "drizzle-orm";
 import { db } from "@/infrastructure/database/db";
@@ -13,6 +13,7 @@ import type { Result } from "../../domain/result";
 import { err, ok } from "../../domain/result";
 import type { Listing, NewListing } from "../../domain/listing";
 import type {
+  AdminCounts,
   AdminListingQuery,
   AdminListingRow,
   AdminListingsQuery,
@@ -182,18 +183,29 @@ export async function hasPendingClaimFor(buyerId: string): Promise<boolean> {
 /**
  * Lists every listing for the panel, soft deleted included, newest first.
  * Left joins the buyer holding a pending claim and counts the screenshot
- * rows, so the panel never needs a second query per row.
+ * rows, so the panel never needs a second query per row. The status bucket
+ * arrives as a plain predicate, so keyset paging keeps working under
+ * every filter.
  */
 export async function listAllForAdmin(query: AdminListingsQuery): Promise<readonly AdminListingRow[]> {
   const holder = alias(users, "claim_holder");
   const cursor = query.cursor;
-  const where =
-    cursor === null || !(cursor.sortKey instanceof Date)
-      ? undefined
-      : or(
-          lt(listings.createdAt, cursor.sortKey),
-          and(eq(listings.createdAt, cursor.sortKey), lt(listings.id, cursor.id)),
-        );
+  const conditions = [];
+  switch (query.status) {
+    case "all":
+      break;
+    case "deleted":
+      conditions.push(isNotNull(listings.deletedAt));
+      break;
+    default:
+      conditions.push(eq(listings.status, query.status), isNull(listings.deletedAt));
+      break;
+  }
+  if (cursor !== null && cursor.sortKey instanceof Date) {
+    conditions.push(
+      or(lt(listings.createdAt, cursor.sortKey), and(eq(listings.createdAt, cursor.sortKey), lt(listings.id, cursor.id))),
+    );
+  }
 
   const rows = await db
     .select({
@@ -206,7 +218,7 @@ export async function listAllForAdmin(query: AdminListingsQuery): Promise<readon
     .from(listings)
     .leftJoin(holder, eq(holder.id, listings.claimedByUserId))
     .leftJoin(listingImages, eq(listingImages.listingId, listings.id))
-    .where(where)
+    .where(conditions.length === 0 ? undefined : and(...conditions))
     .groupBy(listings.id, holder.id, holder.displayName, holder.email)
     .orderBy(desc(listings.createdAt), desc(listings.id))
     .limit(query.limit);
@@ -219,6 +231,37 @@ export async function listAllForAdmin(query: AdminListingsQuery): Promise<readon
         : { userId: row.holderId, displayName: row.holderDisplayName, email: row.holderEmail },
     imageCount: Number(row.imageCount ?? 0),
   }));
+}
+
+/**
+ * Counts listings per panel bucket in two grouped reads.
+ * Takes nothing, returns live rows plus pending plus sold plus deleted plus the total.
+ */
+export async function countForAdmin(): Promise<AdminCounts> {
+  const live = await db
+    .select({ status: listings.status, count: sql<number>`count(*)` })
+    .from(listings)
+    .where(isNull(listings.deletedAt))
+    .groupBy(listings.status);
+  const gone = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(listings)
+    .where(isNotNull(listings.deletedAt));
+  let available = 0;
+  let pending = 0;
+  let sold = 0;
+  for (const row of live) {
+    const count = Number(row.count ?? 0);
+    if (row.status === "available") {
+      available = count;
+    } else if (row.status === "pending") {
+      pending = count;
+    } else if (row.status === "sold") {
+      sold = count;
+    }
+  }
+  const deleted = Number(gone[0]?.count ?? 0);
+  return { total: available + pending + sold + deleted, available, pending, sold, deleted };
 }
 
 /** The listing write port, assembled from the functions above. */
@@ -239,5 +282,6 @@ export const listingQuery: ListingQuery = {
 /** The admin listing read port, assembled from the functions above. */
 export const adminListingQuery: AdminListingQuery = {
   listAllForAdmin,
+  countForAdmin,
 };
 

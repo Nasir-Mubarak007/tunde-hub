@@ -17,7 +17,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4 | Design system & UI foundation | Foundation | in-progress |
 | 5 | Storefront browse and WhatsApp handoff | Slice 1 | in-progress |
 | 6 | Owner sign in and listing management | Slice 1 | in-progress |
-| 7 | Sale lifecycle: pending, sold, removal | Slice 2 | planned |
+| 7 | Sale lifecycle: pending, sold, removal | Slice 2 | in-progress |
 
 ## Foundations
 
@@ -75,14 +75,22 @@ Spec [0003](../specs/0003-storefront-browse-whatsapp-handoff/index.md) · code i
 ### 6. Owner sign in and listing management · in-progress
 You sign in to a private panel with one login of your own, then add, edit and delete listings with platform, price, follower count and screenshots.
 **Done when:** you can sign in, add a listing with a photo and price, edit any field, delete a listing, and see your listings listed in the panel.
-- [ ] Build it: `/develop owner sign in and listing management` (auth half landed 2026-10-14: `/sign-in` with sign in and create account modes, sign out, owner gate helper; panel plus listing writes still open)
+- [x] Build it: `/develop owner sign in and listing management` (auth half landed 2026-10-14 plus panel landed 2026-10-16: `/admin` list, `/admin/listings/new`, `/admin/listings/[id]/edit`, create update delete restore purge actions on spec 0002 use cases, plus panel buckets: overview counts, status filters, pending age plus holder and sold dates on rows)
+Code in `./src/app/admin`, `./src/features/listings/presentation`, `./src/features/auth`
 
 ## Slice 2: Sale lifecycle
 
-### 7. Sale lifecycle: pending, sold, removal · needs a decision
+### 7. Sale lifecycle: pending, sold, removal · in-progress
 A buyer clicking through puts that account into pending and hides it from the public page. You confirm the sale or release it back to available, and a sold listing shows a sold state for a short while before it drops off the site on its own.
 **Done when:** a click hides that listing from the public page, you can mark it sold or release it back, a sold listing shows as sold for a set window and then disappears from the site by itself, and two clicks never put two buyers on one listing.
-- [ ] Design it (spec): `/architect sale lifecycle`
+- [x] Design it (spec): `/architect sale lifecycle`
+- [ ] Build it: `/develop sale lifecycle`
+  - [ ] Owner moves plus logs: transitions, conditional writes, four single actions (AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, AC-10)
+  - [ ] Sold window plus holder view: 7 day filter on reads, hold banner with chat continuation (AC-1, AC-5, AC-7)
+  - [ ] Panel buttons, bulk plus empty states (AC-8)
+- [ ] Verify it: `/check verify sale lifecycle`
+- [ ] Test it: `/test sale lifecycle`
+Spec [0005](../specs/0005-sale-lifecycle/index.md)
 
 ## Deferred
 Out of scope for the current build pass, kept so the plan stays honest.

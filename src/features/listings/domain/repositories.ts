@@ -141,6 +141,27 @@ export interface AdminListingRow {
 export interface AdminListingsQuery {
   readonly cursor: AvailableCursor | null;
   readonly limit: number;
+  readonly status: AdminStatusFilter;
+}
+
+/** One status bucket the panel can filter by. Deleted is a flag, not a lifecycle state. */
+export type AdminStatusFilter = "all" | "available" | "pending" | "sold" | "deleted";
+
+/** Every filter the panel offers, in display order. Takes nothing, used for tabs and validation. */
+export const ADMIN_STATUS_FILTERS: readonly AdminStatusFilter[] = ["all", "available", "pending", "sold", "deleted"];
+
+/** Checks a raw string. Takes the candidate, returns true only for a known panel filter. */
+export function isAdminStatusFilter(value: string): value is AdminStatusFilter {
+  return (ADMIN_STATUS_FILTERS as readonly string[]).includes(value);
+}
+
+/** One overview count block for the panel. Plain numbers, never entities. */
+export interface AdminCounts {
+  readonly total: number;
+  readonly available: number;
+  readonly pending: number;
+  readonly sold: number;
+  readonly deleted: number;
 }
 
 /**
@@ -151,6 +172,8 @@ export interface AdminListingsQuery {
 export interface AdminListingQuery {
   /** Lists every listing newest first. Takes the query, returns at most limit rows. */
   listAllForAdmin(query: AdminListingsQuery): Promise<readonly AdminListingRow[]>;
+  /** Counts listings per bucket. Takes nothing, returns one count per panel bucket. */
+  countForAdmin(): Promise<AdminCounts>;
 }
 
 /**
