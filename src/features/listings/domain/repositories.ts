@@ -6,6 +6,7 @@
  */
 import type { Result } from "./result";
 import type { Listing, NewListing } from "./listing";
+import type { ListingStatus } from "./listingStatus";
 import type { ListingImage } from "./listingImage";
 import type { Platform } from "./platform";
 
@@ -73,8 +74,42 @@ export interface ClaimAttemptInput {
 export interface ClaimStore {
   /** Attempts the claim. Takes the attempt facts, returns the outcome. */
   attemptClaim(input: ClaimAttemptInput): Promise<ClaimAttemptResult>;
-  /** Releases a pending claim. Takes the listing id plus the clock, returns nothing. */
-  releaseClaim(listingId: number, now: Date): Promise<void>;
+}
+
+/**
+ * The owner moves over an existing listing row. Every method is one
+ * conditional update naming the state the row must still be in, so a
+ * stale press that races another press writes nothing and reads back
+ * null instead. Timestamps come from the database clock, never from a
+ * caller, and every move refuses a soft deleted row.
+ */
+export interface ListingSaleStore {
+  /** Confirms a pending listing as sold, keeping the holder. Takes the id, returns the row or null. */
+  confirmSold(listingId: number): Promise<Listing | null>;
+  /** Sells an available listing straight to sold. Takes the id, returns the row or null. */
+  markSoldDirect(listingId: number): Promise<Listing | null>;
+  /** Releases a pending listing back to available. Takes the id, returns the row or null. */
+  releaseClaim(listingId: number): Promise<Listing | null>;
+  /** Reopens a sold listing back to available. Takes the id, returns the row or null. */
+  reopenSold(listingId: number): Promise<Listing | null>;
+}
+
+/** One recorded lifecycle move: the listing, where it came from, where it went, and who pressed. */
+export interface TransitionLogEntry {
+  readonly listingId: number;
+  readonly from: ListingStatus;
+  readonly to: ListingStatus;
+  readonly actorId: string;
+}
+
+/**
+ * Where lifecycle moves are recorded. A log failure must never block a
+ * write that already reached the database, so the implementation never
+ * throws and the use case calls it after the write, not before.
+ */
+export interface TransitionLog {
+  /** Records one move. Takes the entry, returns nothing. Never throws. */
+  write(entry: TransitionLogEntry): void;
 }
 
 /** Hour bucket counters for public writes. Implemented over the clicks table. */
@@ -141,6 +176,27 @@ export interface AdminListingRow {
 export interface AdminListingsQuery {
   readonly cursor: AvailableCursor | null;
   readonly limit: number;
+  readonly status: AdminStatusFilter;
+}
+
+/** One status bucket the panel can filter by. Deleted is a flag, not a lifecycle state. */
+export type AdminStatusFilter = "all" | "available" | "pending" | "sold" | "deleted";
+
+/** Every filter the panel offers, in display order. Takes nothing, used for tabs and validation. */
+export const ADMIN_STATUS_FILTERS: readonly AdminStatusFilter[] = ["all", "available", "pending", "sold", "deleted"];
+
+/** Checks a raw string. Takes the candidate, returns true only for a known panel filter. */
+export function isAdminStatusFilter(value: string): value is AdminStatusFilter {
+  return (ADMIN_STATUS_FILTERS as readonly string[]).includes(value);
+}
+
+/** One overview count block for the panel. Plain numbers, never entities. */
+export interface AdminCounts {
+  readonly total: number;
+  readonly available: number;
+  readonly pending: number;
+  readonly sold: number;
+  readonly deleted: number;
 }
 
 /**
@@ -151,6 +207,8 @@ export interface AdminListingsQuery {
 export interface AdminListingQuery {
   /** Lists every listing newest first. Takes the query, returns at most limit rows. */
   listAllForAdmin(query: AdminListingsQuery): Promise<readonly AdminListingRow[]>;
+  /** Counts listings per bucket. Takes nothing, returns one count per panel bucket. */
+  countForAdmin(): Promise<AdminCounts>;
 }
 
 /**

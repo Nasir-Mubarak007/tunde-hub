@@ -11,6 +11,7 @@ import { err, ok } from "../domain/result";
 import { canManageListings } from "../domain/visibility";
 import type { ViewerRole } from "../domain/visibility";
 import type { AdminListingQuery, AvailableCursor } from "../domain/repositories";
+import type { AdminStatusFilter } from "../domain/repositories";
 import { toAdminListingDto } from "./adminListingDto";
 import type { AdminListingDto } from "./adminListingDto";
 
@@ -22,11 +23,12 @@ export interface ListForAdminDeps {
   readonly listings: AdminListingQuery;
 }
 
-/** Input. Takes the actor role plus an optional cursor plus the page size. */
+/** Input. Takes the actor role plus an optional cursor plus an optional bucket plus the page size. */
 export interface ListForAdminInput {
   readonly actorRole: ViewerRole;
   readonly cursor?: string;
   readonly limit?: number;
+  readonly status?: AdminStatusFilter;
 }
 
 /** What a page returns. The items plus the cursor for the next page, null at the end. */
@@ -81,7 +83,7 @@ export async function listListingsForAdmin(
   }
 
   const limit = input.limit ?? ADMIN_PAGE_SIZE;
-  const rows = await deps.listings.listAllForAdmin({ cursor, limit: limit + 1 });
+  const rows = await deps.listings.listAllForAdmin({ cursor, limit: limit + 1, status: input.status ?? "all" });
   const items = rows.slice(0, limit).map(toAdminListingDto);
   const last = items[items.length - 1];
   const nextCursor = rows.length > limit && last !== undefined ? encodeCursor(last) : null;
