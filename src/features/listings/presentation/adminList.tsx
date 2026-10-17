@@ -11,7 +11,7 @@
  */
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import type { AdminListingDto } from "../application/adminListingDto";
 import type { ListingStatus } from "../domain/listingStatus";
@@ -174,7 +174,7 @@ function BulkBar({
         <button
           className="button button--quiet button--small"
           type="button"
-          aria-disabled={busy || chosen.length === 0}
+          aria-disabled={busy}
           onClick={() => onRun(chosen, bulkConfirmSoldFormAction)}
         >
           Confirm selected
@@ -182,7 +182,7 @@ function BulkBar({
         <button
           className="button button--quiet button--small"
           type="button"
-          aria-disabled={busy || chosen.length === 0}
+          aria-disabled={busy}
           onClick={() => onRun(chosen, bulkReleaseFormAction)}
         >
           Release selected
@@ -197,7 +197,22 @@ export function AdminList({ items, status }: AdminListProps) {
   const [selected, setSelected] = useState<ReadonlySet<number>>(() => new Set());
   const [message, setMessage] = useState<string | null>(null);
   const [running, startTransition] = useTransition();
+  const messageRef = useRef<HTMLParagraphElement | null>(null);
   const now = new Date();
+
+  /**
+   * Keeps the keyboard where the owner left it. A move revalidates the page,
+   * so the button that was pressed is gone by the time the refreshed rows
+   * arrive and the browser drops focus to the document. Whenever that has
+   * happened, the result itself takes focus, which is also what a screen
+   * reader announces. The effect watches the rows as well as the message,
+   * because the refreshed rows land in their own render, after the message.
+   */
+  useEffect(() => {
+    if (message !== null && document.activeElement === document.body) {
+      messageRef.current?.focus();
+    }
+  }, [message, items]);
 
   /** Adds or removes one row from the selection. Takes the id, returns nothing. */
   function toggle(id: number): void {
@@ -226,9 +241,13 @@ export function AdminList({ items, status }: AdminListProps) {
     });
   }
 
-  /** Runs one bulk move over the ticked rows. Takes the ids and the move, returns nothing. */
+  /**
+   * Runs one bulk move over the ticked rows. Takes the ids and the move, returns nothing.
+   * An empty selection is passed to the action on purpose, so the panel prints
+   * the one clear sentence written for that press instead of swallowing it.
+   */
   function runOnSelected(listingIds: readonly number[], move: (ids: readonly number[]) => Promise<{ readonly message: string }>): void {
-    if (running || listingIds.length === 0) {
+    if (running) {
       return;
     }
     startTransition(async () => {
@@ -236,10 +255,17 @@ export function AdminList({ items, status }: AdminListProps) {
     });
   }
 
+  const result = message === null ? null : (
+    <p className="panel__text" role="status" tabIndex={-1} ref={messageRef}>
+      {message}
+    </p>
+  );
+
   if (items.length === 0) {
     const copy = emptyCopy(status);
     return (
       <div className="empty">
+        {result}
         <p className="empty__title">{copy.title}</p>
         <p className="empty__text">{copy.text}</p>
         {status === "all" ? (
@@ -259,11 +285,7 @@ export function AdminList({ items, status }: AdminListProps) {
 
   return (
     <>
-      {message === null ? null : (
-        <p className="panel__text" role="status">
-          {message}
-        </p>
-      )}
+      {result}
       {pendingIds.length === 0 ? null : (
         <BulkBar
           pendingIds={pendingIds}
@@ -311,6 +333,9 @@ export function AdminList({ items, status }: AdminListProps) {
                         Held by {holderName(item)}
                         {item.pendingSince === null ? "" : ` · ${pendingAge(item.pendingSince, now)}`}
                       </span>
+                    ) : null}
+                    {item.status === "sold" && item.holder !== null ? (
+                      <span style={{ display: "block", fontSize: 13 }}>Sold to {holderName(item)}</span>
                     ) : null}
                     {item.status === "sold" && item.soldAt !== null ? (
                       <span style={{ display: "block", fontSize: 13 }}>{soldOn(item.soldAt)}</span>
