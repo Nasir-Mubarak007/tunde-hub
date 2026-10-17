@@ -56,6 +56,7 @@ export async function StorefrontHome({
 
       <main id="main" className="shell">
         <section className="banner">
+          <div className="banner__drift" aria-hidden="true" />
           <div className="banner__text">
             <h1 className="banner__title">Social accounts, ready to hand over</h1>
             <p className="banner__lead">

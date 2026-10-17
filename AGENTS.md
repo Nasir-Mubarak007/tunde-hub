@@ -34,6 +34,13 @@ npm run typecheck
 
 # Tests (runner being set up by /develop tooling)
 npm test
+
+# Schema changes (drizzle-kit writes to ./drizzle)
+npm run db:generate
+npm run db:migrate
+
+# Create or promote the owner account
+npm run seed:owner
 ```
 
 ## Git
@@ -48,6 +55,8 @@ The workflow branches per feature, commits as each milestone lands, and drafts p
 
 Stored in `docs/specs/NNNN-title/`. The scope lives in `docs/scope/scope.md`.
 
+The visual contract lives in [design.md](./design.md): character, tokens, component rules, and page composition. It outranks anything improvised in a page.
+
 ## Rules
 
 Architecture is Clean Architecture, arranged folder by feature. Inside each feature folder the four layers are `domain`, `application`, `infrastructure`, `presentation`.
@@ -58,6 +67,7 @@ Architecture is Clean Architecture, arranged folder by feature. Inside each feat
 - Infrastructure implements interfaces declared in `domain` or `application` (dependency inversion).
 - Entities are plain objects with no ORM decorators, and they enforce their own invariants.
 - Cross layer calls pass plain objects or DTOs. No domain entity reaches the presentation layer.
+- The error pattern is `Result<T, E>` from `src/core/result.ts`. Error codes are kebab case string literals, and every exhaustive switch ends in `assertNever()`.
 - TypeScript is strict. No `any`, and exhaustive types on switches and unions.
 - Named exports only. No default exports, except in the Next.js config files the framework requires.
 - Every exported function and module carries a short doc comment saying what it takes and what it returns.
@@ -65,6 +75,7 @@ Architecture is Clean Architecture, arranged folder by feature. Inside each feat
 - Validate environment variables at startup through one module, so a missing `DATABASE_URL` fails on boot, not mid request.
 - Naming: components in PascalCase, functions and variables in camelCase, database tables plural in snake_case, files matching the thing they export.
 - UI holds a WCAG AA baseline: every control reachable and operable by keyboard, visible focus, labelled inputs, and sufficient contrast.
+- Styling comes from `src/app/globals.css`: CSS variables and BEM style class names. Tailwind v4 is bridged onto the same tokens through `@theme inline`, but no component uses utility classes and no new hex value is added.
 - Conventional commit messages (`feat:`, `fix:`, `docs:`, `chore:`).
 
 ## Tooling
@@ -95,5 +106,9 @@ MCP servers: Neon (recommended), Vercel (recommended), Sentry (recommended), Git
 ## Context files
 
 <!-- Nested AGENTS.md files are listed here as they are created -->
+
+- [src/app/AGENTS.md](src/app/AGENTS.md): routes, the loading policy under `cacheComponents`, and the hand written stylesheet
+- [src/features/listings/AGENTS.md](src/features/listings/AGENTS.md): the listing entity, the claim rule, conditional sale writes, and money and slug conventions
+- [src/features/auth/AGENTS.md](src/features/auth/AGENTS.md): Better Auth wiring, the owner gate, role rules, and the shared hourly rate limit cap
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

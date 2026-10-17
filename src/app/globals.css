@@ -1,7 +1,31 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-panel-sunk: var(--panel-sunk);
+  --color-owner-surface: var(--owner-surface);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-chat: var(--chat);
+  --color-chat-strong: var(--chat-strong);
+  --color-sold-ink: var(--sold-ink);
+  --color-sold-face: var(--sold-face);
+  --color-pending-bg: var(--pending-bg);
+  --color-pending-ink: var(--pending-ink);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
+}
+
 :root {
   --surface: #fbf9f6;
   --panel: #ffffff;
   --panel-sunk: #f4efe8;
+  --owner-surface: #f2f4f6;
   --ink: #1a1917;
   --ink-muted: #635c53;
   --line: #e7dfd4;
@@ -10,15 +34,65 @@
   --chat-strong: #0f5c36;
   --sold-ink: #4a443c;
   --sold-face: #ece4d8;
+  --pending-bg: #fdf3e3;
+  --pending-ink: #7a4a00;
   --danger: #9c2b1e;
   --focus: #1a1917;
+  --tint-instagram: #e1306c;
+  --tint-tiktok: #111111;
+  --tint-youtube: #c4302b;
+  --tint-x: #1a1917;
   --radius: 14px;
   --radius-small: 10px;
   --shadow: 0 1px 2px rgba(26, 25, 23, 0.06), 0 8px 24px rgba(26, 25, 23, 0.05);
 }
 
+.dark {
+  --surface: #161412;
+  --panel: #201d19;
+  --panel-sunk: #2a2621;
+  --owner-surface: #1a1e22;
+  --ink: #f4efe8;
+  --ink-muted: #b8ad9f;
+  --line: #3a352e;
+  --line-strong: #544c40;
+  --chat: #2ea36b;
+  --chat-strong: #35b578;
+  --sold-ink: #e8ddcb;
+  --sold-face: #3a332a;
+  --pending-bg: #3a2c14;
+  --pending-ink: #f5c86e;
+  --danger: #e07a5f;
+  --focus: #f4efe8;
+  --tint-instagram: #f0568c;
+  --tint-tiktok: #f4efe8;
+  --tint-youtube: #e86059;
+  --tint-x: #f4efe8;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(24px, -12px, 0); }
+}
+
+.banner__drift {
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner__drift {
+    animation: none;
+  }
+}
+
 html {
   height: 100%;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 html,
@@ -38,6 +112,14 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.banner__title,
+.detail__title,
+.card__price,
+.detail__price {
+  font-family: var(--font-display, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-weight: 700;
 }
 
 * {
@@ -215,12 +297,35 @@ img {
 /* Banner */
 
 .banner {
+  position: relative;
+  overflow: hidden;
   margin: 24px 0 20px;
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: linear-gradient(180deg, #ffffff 0%, #f7f2ea 100%);
   box-shadow: var(--shadow);
+}
+
+.banner__drift {
+  position: absolute;
+  top: -40px;
+  right: -30px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(21, 115, 71, 0.16) 0%, rgba(21, 115, 71, 0) 70%);
+  pointer-events: none;
+  animation: drift 24s ease-in-out infinite alternate;
+}
+
+.dark .banner__drift {
+  background: radial-gradient(circle, rgba(46, 163, 107, 0.28) 0%, rgba(46, 163, 107, 0) 70%);
+}
+
+.banner__text {
+  position: relative;
+  z-index: 1;
 }
 
 .banner__title {
@@ -815,6 +920,39 @@ img {
   margin-top: 14px;
   font-size: 13px;
   color: var(--ink-muted);
+}
+
+/* Footer */
+
+/* Dark surfaces for hardcoded light washes: tokens already flip, these washes follow. */
+
+.dark .shop-header {
+  background: rgba(22, 20, 18, 0.94);
+}
+
+.dark .banner {
+  background: linear-gradient(180deg, #201d19 0%, #2a2621 100%);
+}
+
+.dark .gate__cover {
+  background: linear-gradient(135deg, #2a2621 0%, #3a332a 100%);
+}
+
+.dark .skeleton {
+  background: linear-gradient(90deg, #2a2621 0%, #3a352e 50%, #2a2621 100%);
+}
+
+.dark .button--solid {
+  color: #161412;
+  background: var(--ink);
+}
+
+.dark .button--solid:hover {
+  background: #d8cfc0;
+}
+
+.dark .button--chat {
+  color: #101613;
 }
 
 /* Footer */

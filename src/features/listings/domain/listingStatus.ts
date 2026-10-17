@@ -2,7 +2,7 @@
  * Lifecycle states for a listing.
  * Sales normally run available to pending to sold.
  * The owner may also sell directly from available.
- * Sold is terminal. Feature 7 owns the orchestration.
+ * Sold is not terminal: the owner may reopen it back to available.
  */
 import { assertNever } from "./result";
 
@@ -25,7 +25,7 @@ export function canTransitionListingStatus(from: ListingStatus, to: ListingStatu
     case "pending":
       return to === "available" || to === "sold";
     case "sold":
-      return false;
+      return to === "available";
     default:
       return assertNever(from);
   }

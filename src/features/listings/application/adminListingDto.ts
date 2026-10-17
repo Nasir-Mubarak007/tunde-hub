@@ -6,6 +6,7 @@
  */
 import { formatAccountAge, formatListingPrice } from "../domain/listing";
 import type { Listing } from "../domain/listing";
+import type { ListingStatus } from "../domain/listingStatus";
 import { platformLabel } from "../domain/platform";
 import type { AdminListingRow, ClaimHolder } from "../domain/repositories";
 
@@ -18,10 +19,12 @@ export interface AdminListingDto {
   readonly priceDisplay: string;
   readonly followerCount: number;
   readonly ageDisplay: string;
-  readonly status: string;
+  readonly status: ListingStatus;
   readonly isDeleted: boolean;
   readonly imageCount: number;
   readonly createdAt: Date;
+  readonly pendingSince: Date | null;
+  readonly soldAt: Date | null;
   readonly holder: ClaimHolder | null;
 }
 
@@ -46,6 +49,8 @@ export function toAdminListingDto(row: AdminListingRow): AdminListingDto {
     isDeleted: listing.deletedAt !== null,
     imageCount: row.imageCount,
     createdAt: listing.createdAt,
+    pendingSince: listing.pendingSince,
+    soldAt: listing.soldAt,
     holder: row.holder,
   };
 }

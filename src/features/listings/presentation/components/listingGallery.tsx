@@ -3,12 +3,8 @@
  * Each screenshot carries its three width variants, so the phone downloads
  * the small one and the desktop the large one.
  */
+import Image from "next/image";
 import type { ListingScreenshotDto } from "../../application/listingDto";
-
-/** The srcset for one screenshot. Takes the variants, returns the attribute text. */
-function srcSetFor(screenshot: ListingScreenshotDto): string {
-  return screenshot.variants.map((variant) => `${variant.url} ${variant.width}w`).join(", ");
-}
 
 /** Renders the gallery. Takes the screenshots, returns the gallery element or null. */
 export function ListingGallery({ screenshots }: { readonly screenshots: readonly ListingScreenshotDto[] }) {
@@ -17,33 +13,32 @@ export function ListingGallery({ screenshots }: { readonly screenshots: readonly
     return null;
   }
   const [first, ...rest] = withImages;
+  // The optimizer builds the srcset from this source, so the hand made
+  // srcset is no longer needed. Height is not stored per variant, so the
+  // 768 hint below only reserves the layout box, matching the old markup.
+  const lead = first.variants[1] ?? first.variants[0];
   return (
     <div className="gallery">
-      <img
+      <Image
         className="gallery__lead"
-        src={(first.variants[1] ?? first.variants[0]).url}
-        srcSet={srcSetFor(first)}
-        sizes="(min-width: 900px) 60vw, 100vw"
+        src={lead.url}
         alt="Account screenshot"
-        width={(first.variants[0] ?? first.variants[1]).width}
+        width={lead.width}
         height={768}
-        loading="eager"
-        decoding="async"
+        sizes="(min-width: 900px) 60vw, 100vw"
+        priority
       />
       {rest.length === 0 ? null : (
         <div className="gallery__strip">
           {rest.map((screenshot) => (
-            <img
+            <Image
               key={screenshot.position}
               className="gallery__thumb"
               src={(screenshot.variants[0] ?? screenshot.variants[1]).url}
-              srcSet={srcSetFor(screenshot)}
-              sizes="(min-width: 900px) 20vw, 33vw"
               alt={`Account screenshot ${screenshot.position + 1}`}
               width={320}
               height={320}
-              loading="lazy"
-              decoding="async"
+              sizes="(min-width: 900px) 20vw, 33vw"
             />
           ))}
         </div>

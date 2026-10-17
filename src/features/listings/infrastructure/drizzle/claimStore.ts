@@ -103,20 +103,6 @@ export async function attemptClaim(input: ClaimAttemptInput): Promise<ClaimAttem
   });
 }
 
-/** Releases a pending claim. Takes the listing id plus the clock, returns nothing. */
-export async function releaseClaim(listingId: number, now: Date): Promise<void> {
-  await db
-    .update(listings)
-    .set({
-      status: "available",
-      claimedByUserId: null,
-      claimToken: null,
-      pendingSince: null,
-      updatedAt: now,
-    })
-    .where(and(eq(listings.id, listingId), eq(listings.status, "pending")));
-}
-
 /** Increments the bucket and returns the new count. Takes the hash plus the bucket, returns the count. */
 export async function incrementAndGetCount(visitorHash: string, bucket: Date): Promise<number> {
   return db.transaction((tx) => incrementClick(tx, { visitorHash, bucket }));
@@ -134,7 +120,6 @@ export async function pruneOlderThan(cutoff: Date): Promise<number> {
 /** The claim port, assembled from the functions above. */
 export const claimStore: ClaimStore = {
   attemptClaim,
-  releaseClaim,
 };
 
 /** The rate limit port, assembled from the functions above. */
