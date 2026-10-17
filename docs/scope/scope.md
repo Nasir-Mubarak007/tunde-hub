@@ -17,7 +17,9 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 4 | Design system & UI foundation | Foundation | in-progress |
 | 5 | Storefront browse and WhatsApp handoff | Slice 1 | in-progress |
 | 6 | Owner sign in and listing management | Slice 1 | in-progress |
-| 7 | Sale lifecycle: pending, sold, removal | Slice 2 | in-progress |
+| 7 | Sale lifecycle: pending, sold, removal | Slice 2 | done |
+| 8 | Error monitoring | Slice 3 | planned |
+| 9 | Abuse limits | Slice 3 | planned |
 
 ## Foundations
 
@@ -82,7 +84,7 @@ Code in `./src/app/admin`, `./src/features/listings/presentation`, `./src/featur
 
 ## Slice 2: Sale lifecycle
 
-### 7. Sale lifecycle: pending, sold, removal · in-progress
+### 7. Sale lifecycle: pending, sold, removal · done
 A buyer clicking through puts that account into pending and hides it from the public page. You confirm the sale or release it back to available, and a sold listing shows a sold state for a short while before it drops off the site on its own.
 **Done when:** a click hides that listing from the public page, you can mark it sold or release it back, a sold listing shows as sold for a set window and then disappears from the site by itself, and two clicks never put two buyers on one listing.
 - [x] Design it (spec): `/architect sale lifecycle`
@@ -90,9 +92,21 @@ A buyer clicking through puts that account into pending and hides it from the pu
   - [x] Owner moves plus logs: transitions, conditional writes, four single actions (AC-2, AC-3, AC-4, AC-6, AC-7, AC-9, AC-10)
   - [x] Sold window plus holder view: 7 day filter on reads, hold banner with chat continuation (AC-1, AC-5, AC-7)
   - [x] Panel buttons, bulk plus empty states (AC-8)
-- [ ] Verify it: `/check verify sale lifecycle`
+- [x] Verify it: `/check verify sale lifecycle` (ran 2026-10-17: all ten acceptance criteria met with live evidence against the dev branch, three panel gaps found and fixed the same day, 34 of 36 steps ticked, the database `TimeZone` half and the unreachable `Buyer` fallback left unticked; see the spec verify.md)
 - [ ] Test it: `/test sale lifecycle`
 Spec [0005](../specs/0005-sale-lifecycle/index.md) · code in `./src/features/listings`, `./src/app/listings/[slug]`, `./src/app/admin`
+
+## Slice 3: Keeping the shop standing
+
+### 8. Error monitoring · planned
+You find out when the shop breaks instead of hearing it from a buyer. Something catches every unexpected failure across the app, tells you where it happened in readable form, and keeps buyer personal data out of what it sends.
+**Done when:** an unexpected failure on any page or action reaches you with a stack trace that names the real source file and line, buyer emails, display names and the WhatsApp number never leave the app, local noise stays out of the way, and the lifecycle moves still keep their own log.
+- [ ] Design it (spec): `/architect error monitoring`
+
+### 9. Abuse limits · planned
+One visitor, one script or one bug cannot spend the shop's whole hourly allowance, lock out real buyers behind a shared address, or fill the counter table forever. The cap you already have on signing up and claiming gets a shape worth trusting, and the surfaces with none get one.
+**Done when:** every public write and every owner write has a stated cap and a stated key, the sign up and claim budgets no longer spend each other, people behind one shared address are not locked out by each other, the counter rows are cleaned up on a schedule that actually runs, and the answer to an over cap press is the same clear refusal everywhere.
+- [ ] Design it (spec): `/architect abuse limits`
 
 ## Deferred
 Out of scope for the current build pass, kept so the plan stays honest.

@@ -18,6 +18,7 @@ The core entity of the shop: an account for sale, its screenshots, the rules tha
 | `infrastructure/drizzle/saleStore.ts` | the four owner moves, one conditional `UPDATE` each |
 | `infrastructure/drizzle/listingMapper.ts` | the only place a database row becomes an entity |
 | `presentation/adminListingActions.ts` | every admin write, with `revalidatePath` |
+| `presentation/adminList.tsx` | the panel table, the row buttons, the bulk bar and the result message |
 | `presentation/claimListingAction.ts` | the claim write, which redirects instead of revalidating |
 | `presentation/storefrontQuery.ts` | the public URL contract: parse, build, narrow |
 
@@ -39,6 +40,10 @@ The core entity of the shop: an account for sale, its screenshots, the rules tha
 - Screenshots go through UploadThing: owners only, images only, 4 MB each, up to 18 files, because there are 6 slots and 3 widths (320, 768, 1200). Resizing happens in the browser before upload.
 - `presentation` reaches infrastructure only through `container`, never through a repository file directly.
 - `application/adminOverview.ts` is intentionally left out of the barrel.
+- The panel's result message and its focus live outside the empty state branch, so a move that drains a bucket still announces and still keeps the keyboard in the panel.
+- `aria-disabled` on a panel button means a move is running, never "you cannot press this yet". The empty selection sentence comes from the action, so the panel must not swallow the press before it gets there.
+- After a move the browser drops focus to the document, because the pressed button unmounts with the refreshed rows; the effect moves focus to the status region instead.
+- The admin query joins the holder for every status. A pending row reads Held by, a sold row reads Sold to.
 
 ## Related specs
 

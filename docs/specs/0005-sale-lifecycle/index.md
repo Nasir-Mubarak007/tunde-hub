@@ -1,7 +1,7 @@
 # 0005. Sale lifecycle for listings
 
 **Date**: 2026-10-16
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
