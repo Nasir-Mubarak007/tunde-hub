@@ -52,10 +52,12 @@ Spec [0002](../specs/0002-data-model/index.md) · code in `./src/features/listin
 Visual language, layout primitives, and base components so the shop looks credible and works on a phone, since most buyers will arrive from a link on mobile.
 **Done when:** `design.md` covers type, color, spacing and components, and base components handle focus and keyboard.
 - [x] Design it (spec): `/architect design system & UI foundation`
-- [ ] Build it: `/develop design system & UI foundation` (steps derive from the standard at build time, no milestone rollup here by rule)
+- [x] Build it: `/develop design system & UI foundation` (already landed 2026-10-17 while slices 1 and 2 were built: tokens light and dark, Tailwind bridged through `@theme inline`, Inter 700 display, theme cookie with no flash script, banner drift gated on reduced motion, `Button` and `Field` plus card grid header footer skeleton empty, 44px targets, 3px focus ring, skip link; typecheck and lint clean, no new code in this run)
+  - Deferred with the spec's own follow ups, not built here: the `stylelint.config.js` token lint and the pull request template access checklist (both earmarked for tooling), and the `tailwind-v4-shadcn` skill install
+  - Needs `/architect`: spec item 6 says parts are shadcn style on Radix, the shipped `Button` and `Field` are hand written with no Radix and no utility classes, and root `AGENTS.md` now rules that Tailwind utility classes are not used
 - [ ] Verify it: `/check verify design system & UI foundation`
 - [ ] Test it: `/test design system & UI foundation`
-Spec [0004](../specs/0004-design-system-ui-foundation/index.md)
+Spec [0004](../specs/0004-design-system-ui-foundation/index.md) · code in `./src/app/globals.css`, `./src/shared/ui`, `./src/app/layout.tsx`
 
 ## Slice 1: Smallest usable whole
 
