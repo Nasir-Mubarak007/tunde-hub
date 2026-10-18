@@ -6,6 +6,7 @@
  * implementation swallows its own failures and keeps going.
  */
 import type { TransitionLog, TransitionLogEntry } from "../domain/repositories";
+import { saleTransitionBreadcrumbs } from "@/features/observability/infrastructure/serverCapture";
 
 /** Records one lifecycle move in the app log. Takes the entry, returns nothing. Never throws. */
 export function write(entry: TransitionLogEntry): void {
@@ -19,6 +20,7 @@ export function write(entry: TransitionLogEntry): void {
   } catch {
     // The write already landed. A log that will not take the entry must not undo it.
   }
+  saleTransitionBreadcrumbs.recordTransition(entry);
 }
 
 /** The transition log port, assembled from the function above. */
