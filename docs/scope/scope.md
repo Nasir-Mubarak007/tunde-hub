@@ -18,7 +18,7 @@ _These are recommendations to keep your build orderly, not requirements. Skip an
 | 5 | Storefront browse and WhatsApp handoff | Slice 1 | in-progress |
 | 6 | Owner sign in and listing management | Slice 1 | in-progress |
 | 7 | Sale lifecycle: pending, sold, removal | Slice 2 | done |
-| 8 | Error monitoring | Slice 3 | planned |
+| 8 | Error monitoring | Slice 3 | in-progress |
 | 9 | Abuse limits | Slice 3 | planned |
 
 ## Foundations
@@ -98,10 +98,18 @@ Spec [0005](../specs/0005-sale-lifecycle/index.md) · code in `./src/features/li
 
 ## Slice 3: Keeping the shop standing
 
-### 8. Error monitoring · planned
+### 8. Error monitoring · in-progress
 You find out when the shop breaks instead of hearing it from a buyer. Something catches every unexpected failure across the app, tells you where it happened in readable form, and keeps buyer personal data out of what it sends.
 **Done when:** an unexpected failure on any page or action reaches you with a stack trace that names the real source file and line, buyer emails, display names and the WhatsApp number never leave the app, local noise stays out of the way, and the lifecycle moves still keep their own log.
-- [ ] Design it (spec): `/architect error monitoring`
+- [x] Design it (spec): `/architect error monitoring`
+- [x] Build it: `/develop error monitoring` (all milestones landed 2026-10-18: two observability tables with time zone timestamps applied to the dev branch and confirmed live, the `observability` area with its ports and owned constants, the Node and browser capture hooks with the pure scrub and the production gate, source map upload that warns and exits zero, the before send adapter that writes a row before the event is sent, sale moves mirrored as breadcrumbs, slow request capture against the three second threshold, and the guarded daily job with its prune)
+  - [x] Tables, ports and owned constants: the two rows tables with their enums, the recorder and breadcrumb ports, the threshold and retention constants (AC-4, AC-5, AC-6, AC-7)
+  - [x] Hooks, scrub and the production gate: both instrumentation files including the server error hook, the pure text scrub, the lenient env reader (AC-1, AC-2, AC-3, AC-9)
+  - [x] Source maps and the local write: build plugin plus release name plus upload script, and the adapter that writes a scrubbed row before the event is sent (AC-1, AC-3, AC-4, AC-8, AC-10)
+  - [x] Breadcrumbs, slow requests, daily job and the isolation proof (AC-2, AC-5, AC-6, AC-7, AC-8, AC-9)
+- [ ] Verify it: `/check verify error monitoring`
+- [ ] Test it: `/test error monitoring`
+Spec [0006](../specs/0006-error-monitoring/index.md) · code in `./src/features/observability`, `./src/instrumentation.ts`, `./src/instrumentation-client.ts`, `./src/sentry.server.config.ts`, `./src/app/api/cron/health`, `./scripts/upload-sourcemaps.mjs`
 
 ### 9. Abuse limits · planned
 One visitor, one script or one bug cannot spend the shop's whole hourly allowance, lock out real buyers behind a shared address, or fill the counter table forever. The cap you already have on signing up and claiming gets a shape worth trusting, and the surfaces with none get one.
