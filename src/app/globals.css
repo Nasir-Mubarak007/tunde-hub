@@ -294,6 +294,37 @@ img {
   background: var(--chat-strong);
 }
 
+/* Theme toggle */
+
+/* The mark is the whole control, so the button keeps the 44px target even
+   though it no longer carries a word. */
+.theme-toggle {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.theme-toggle__icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+/* Both marks ship in the markup and the `dark` class picks one, so the
+   server render and the client render never disagree. Light shows the moon
+   because pressing it brings on the dark theme. */
+.theme-toggle__icon--sun {
+  display: none;
+}
+
+.dark .theme-toggle__icon--sun {
+  display: block;
+}
+
+.dark .theme-toggle__icon--moon {
+  display: none;
+}
+
 /* Banner */
 
 .banner {
