@@ -41,10 +41,11 @@ function pathPart(value: string): string {
 /**
  * Normalises any route spelling into a template. Takes a route template, a
  * pathname, or a monitor span name, returns the bracket form route with no
- * value in it, or the unknown constant when nothing usable is left.
+ * value in it, the root route when the path has no segments at all, or the
+ * unknown constant when there is no usable name.
  */
 export function normaliseRouteName(value: string | undefined): string {
-  if (value === undefined) {
+  if (value === undefined || value.trim() === "") {
     return ROUTE_UNKNOWN;
   }
   const segments = pathPart(value)
@@ -60,7 +61,7 @@ export function normaliseRouteName(value: string | undefined): string {
   const normalised = segments.map((segment) =>
     isTemplateSegment(segment) || STATIC_SEGMENTS.has(segment) ? segment : ROUTE_PARAM_SEGMENT,
   );
-  return normalised.length === 0 ? ROUTE_UNKNOWN : `/${normalised.join("/")}`;
+  return normalised.length === 0 ? "/" : `/${normalised.join("/")}`;
 }
 
 /**
