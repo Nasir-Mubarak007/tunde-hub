@@ -2,10 +2,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as authSchema from "@/features/auth/infrastructure/auth-schema";
 import * as listingsSchema from "@/features/listings/infrastructure/drizzle/schema";
+import * as observabilitySchema from "@/features/observability/infrastructure/drizzle/schema";
 
 export const schema = {
   ...authSchema,
   ...listingsSchema,
+  ...observabilitySchema,
 };
 
 export type Schema = typeof schema;
