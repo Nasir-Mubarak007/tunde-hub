@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && npm run sourcemaps:upload",
+    "build:app": "next build",
+    "sourcemaps:upload": "node scripts/upload-sourcemaps.mjs",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -15,6 +17,8 @@
   "dependencies": {
     "@neon/config": "^1.8.6",
     "@neon/env": "^1.5.3",
+    "@sentry/core": "^11.8.0",
+    "@sentry/nextjs": "^11.8.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@uploadthing/react": "^7.3.3",
     "better-auth": "^1.7.7",
@@ -28,6 +32,7 @@
     "zod": "^4.6.6"
   },
   "devDependencies": {
+    "@sentry/cli": "^3.8.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
